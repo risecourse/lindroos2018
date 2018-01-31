@@ -193,7 +193,7 @@ def main(par="./params-msn.json", \
                             target=None,    \
                             not2mod=[] ): 
     
-    print(run)
+    print('iter:', run)
     
     # initiate cell
     cell = build.MSN(params=par)
@@ -418,7 +418,7 @@ def main(par="./params-msn.json", \
     ID          = ''
     all_factors = mod_fact + syn_fact
     
-    for i,mech in enumerate(mod_list+syn_mod):
+    for i,mech in enumerate(mod_list+['amp', 'nmd', 'gab']):
         ID = ID + mech + str( int(all_factors[i]*100) )
     
     if dynMod == 1:
@@ -465,8 +465,9 @@ if __name__ == "__main__":
     n_runs_control      = 5
     n_runs_modulated    = 5
     
-        
-    # ['Target1p', 'cAMP', 'Gbgolf',  'D1RDAGolf']
+    # other targets: ['Target1p', 'cAMP', 'Gbgolf',  'D1RDAGolf']
+    
+    # modulated
     for n in range(n_runs_modulated):
         main( par="./params-rob.json",          \
                     amp=0.0,                    \
@@ -478,6 +479,7 @@ if __name__ == "__main__":
                     target='Target1p',          \
                     not2mod=[]                  )
     
+    # control (dynMod = 0)
     for n in range(n_runs_modulated,n_runs_modulated+n_runs_modulated):
         main( par="./params-rob.json",          \
                     amp=0.0,                    \
@@ -486,7 +488,6 @@ if __name__ == "__main__":
                     stimDur=3000,               \
                     sim='synMod',               \
                     dynMod=0,                   \
-
                     target='Target1p',          \
                     not2mod=[]                  )
         

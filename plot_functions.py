@@ -200,7 +200,7 @@ def adjust_spines(ax, spines, detache=False):
         
         
 def pie_autopct(pct):
-    print pct
+    #print pct
     return ('%1.0f' % pct) if pct > 20 else ''
     
     
@@ -3081,7 +3081,6 @@ def plot_fig4_raster(spike_dict):
             
             if len(spike_dict[n][I]) > 0 or i == 2:
                 
-                print I
                 quant[I] += 1
                 break
                 

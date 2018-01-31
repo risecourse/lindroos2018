@@ -95,7 +95,7 @@ def main(par="./params-msn.json", \
                             not2mod=[],     \
                             modulate_axon=False): 
     
-    print(run, amp)
+    print('-iter:', run, '-amp:', amp, '[nA]')
     
     # initiate cell
     cell = build.MSN(params=par)
@@ -179,7 +179,7 @@ def main(par="./params-msn.json", \
                                                                   [1.0,2.0],    \
                                                                   [0.0,1.0]]    )
                                                                   
-            print('factors drawn:', mod_factors)
+            print('factors drawn:', mod_fact)
             
         else:
             
