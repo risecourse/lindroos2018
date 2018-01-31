@@ -1,0 +1,29 @@
+#!/bin/bash -l
+#SBATCH -t 00:59:00
+#SBATCH -J T1p-excUnif-synModAll
+#SBATCH -o save/o.%j
+#SBATCH -e save/e.%j
+#SBATCH --nodes=8
+#SBATCH --ntasks=256
+#SBATCH --ntasks-per-node=32
+#SBATCH -A <allocation>
+
+
+# enable loading the modules and loading neuron
+source $MODULESHOME/init/bash
+
+module swap PrgEnv-cray PrgEnv-gnu
+module load craype-haswell
+module unload cray-libsci atp
+module load neuron/7.4-py27
+
+# source activate_python
+export CRAYPE_LINK_TYPE=dynamic
+export CRAY_ROOTFS=DSL
+
+cd /cfs/scratch/r/rlindr/Neuron
+
+# compile mod files:
+nrnivmodl
+
+aprun -n 256 ./$CPU/special cell-msn-parallel2_synAct.py 
