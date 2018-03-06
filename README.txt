@@ -2,6 +2,33 @@ Model used in
 
 Lindroos et al. (2018). doi 10.3389/fncir.2018.00003
 
+Errata:
+There is a discrepancy between the model description of the soma in the paper (Morphology;
+page 6) and how the morphology file is interpreted by NEURON.
+In the paper it is stated that two additional somatic points are added to the morphology,
+giving a length and diameter of 12.2 and 11.2 respectively. The extra points are however
+not interpreted as part of the same section as the root node, but as an additional somatic
+protrusion. This have the consequence that the somatic area, and thereby currents, are 
+larger than expected. The total somatic area of the model, instead corresponds to the size 
+of a sphere with a radius of about 7 um. 
+
+This does not affect the results of the paper since the same result can be obtained in a 
+model with sperical soma of arbitrary size. This is done by rescaling the maximal value of 
+the somatic conductances by the following scale factor:
+    
+    SF = A_org/A_new
+    
+Where A_org is the original area (626.3078906869523 um2, in this case), and
+      A_new is the somatic area of the model you wish to mapp to.
+      
+Since the dendritic conductances are set based on the distance to the edge of the soma, 
+the distance of each segment must also be rescaled based on the difference in somatic 
+(root) radius:
+
+    dist(seg_x) = dist + (r_new - r_org)
+    
+ 
+
 ------------------------------------------------------------------------------------------
 
 -Dependencies
@@ -164,9 +191,4 @@ files for the simulation at the end to work).
 
 
 
-ADDITIONAL COMMENTS
-------------------------------------------------------------------------------------------
-In the caption to figure 6 it is stated that the amplitude of the DA cascade used is 
-1.5 uM. This is unfortunately a typo. Both 1.5 and 0.5 were used with similar results but
-the value used when producing figure 6 was 0.5 uM.
  
