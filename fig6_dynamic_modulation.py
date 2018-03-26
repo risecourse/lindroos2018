@@ -34,6 +34,10 @@ RES = {}
 # and 500 ms time constant.
 with open('./substrates.json') as file:
     SUBSTRATES = json.load(file)
+    
+    
+    
+    
 
 
     
@@ -48,6 +52,10 @@ def alpha(tstart, gmax, tau):
     
     
     
+    
+    
+    
+    
 def save_vector(t, v, outfile):
     
     with open(outfile, "w") as out:
@@ -56,8 +64,11 @@ def save_vector(t, v, outfile):
             
             
             
+            
+            
+            
+            
 def calc_rand_Modulation(mod_list, range_list=False):
-    
     '''
     uses numpy to draws random modulation factors in range [0,2],
     from a uniform distribution, for each channel in mod_list.
@@ -93,7 +104,9 @@ def calc_rand_Modulation(mod_list, range_list=False):
          
 
 
-def make_random_synapse(ns, nc, Syn, sec, x,               \
+
+
+def make_random_synapse(ns, nc, Syn, sec, x, n, \
                 Type='glut',                    \
                 NS_start=1,                     \
                 NS_interval=1000.0/18.0,        \
@@ -108,14 +121,10 @@ def make_random_synapse(ns, nc, Syn, sec, x,               \
                 NC_delay=1,                     \
                 NC_conductance=0.6e-3,          \
                 NC_threshold=0.1                ):
-    
     '''
     creates a synapse in the segment closest to x in section sec.
-    
     NS-arguments are used to define a NetStim object
-    
     S-arguemts are used to specify the synapse mechanism
-    
     NC-arguemts are used to define the NetCon object
     '''
     
@@ -127,9 +136,9 @@ def make_random_synapse(ns, nc, Syn, sec, x,               \
         Syn[key].tauR       = S_tau_dep
         Syn[key].U          = S_U
         
-    elif Type in ['expSyn2', 'tmgabaa', 'gaba']:
+    elif Type in ['expSyn2', 'tmgabaa']:
         
-        key                 = sec.name() + '_gaba'
+        key         = sec.name() + '_gaba'
         
         if Type == 'expSyn2':
             Syn[key]            = h.Exp2Syn(x, sec=sec)
@@ -137,22 +146,26 @@ def make_random_synapse(ns, nc, Syn, sec, x,               \
             Syn[key].tau2       = S_tau2 
         elif Type == 'tmgabaa':
             Syn[key]            = h.tmGabaA(x, sec=sec)
+            Syn[key].tauR       = S_tau_dep
+            Syn[key].U          = S_U
             
-        Syn[key].e          = S_e
+        Syn[key].e  = S_e
+        
+    else:
+        
+        sys.stderr.write('\nError: wrong synapse Type (%s). \n\tSynapse not set. Exiting\n' %Type)
+        sys.exit()
         
          
-    
     # create NetStim object
     ns[key]             = h.NetStim()
     ns[key].start       = NS_start
     ns[key].interval    = NS_interval # mean interval between two spikes in ms
     ns[key].noise       = NS_noise
     ns[key].number      = NS_number
-
-    
     
     # create NetCon object
-    nc[key]             = h.NetCon(ns[sec],Syn[sec])
+    nc[key]             = h.NetCon(ns[key],Syn[key]) #  THIS IS WHERE THE ERROR WAS (Syn[sek] instead of Syn[key])
     nc[key].delay       = NC_delay
     nc[key].weight[0]   = NC_conductance
     nc[key].threshold   = NC_threshold
@@ -160,7 +173,14 @@ def make_random_synapse(ns, nc, Syn, sec, x,               \
 
 
 
+
+
+
 def set_rand_synapse(channel_list, base_mod, max_mod, range_list=[[0.75,1.5],[0.75,1.5]]):   
+    ''' 
+    calculates and returnes values for the dynamic modulation factrs, normalized to to the 
+    substrate range seen during 1000 ms simulation 
+    '''
     
     syn_fact = calc_rand_Modulation(channel_list, range_list=range_list)
         
@@ -183,27 +203,29 @@ def set_rand_synapse(channel_list, base_mod, max_mod, range_list=[[0.75,1.5],[0.
 # base modulation (control) is assumed for base value of the substrate and full modulation
 # is assumed when the substrate level reaches its maximal value. Linear scaling is used 
 # between these points.
-def main(par="./params-msn.json", \
-                            sim='vm',       \
-                            amp=0.265,      \
+def main(par="./params_dMSN.json", \
                             run=None,       \
                             dynMod=1,       \
-                            simDur=7000,    \
-                            stimDur=900,    \
+                            simDur=2000,    \
                             target=None,    \
                             not2mod=[] ): 
     
-    print('iter:', run)
+    print('iter:', run, target)
+    
+    
     
     # initiate cell
-    cell = build.MSN(params=par)
+    cell    =   build.MSN(  params=par,                             \
+                            morphology='latest_WT-P270-20-14ak.swc' )
     
         
     # set cascade
     casc = h.D1_reduced_cascade2_0(0.5, sec=cell.soma)
     
     
-    # set pointer (the pka proxy, Target1p, is used in this example).
+    # specify pointer 
+    if target == 'control':
+        target='Target1p'
     cmd         = 'pointer = casc._ref_'+target
     exec(cmd)
     base_mod    = SUBSTRATES[target][0]
@@ -212,13 +234,6 @@ def main(par="./params-msn.json", \
     
     # set edge of soma as reference for distance 
     h.distance(1, sec=h.soma[0])
-    
-    
-    # set current injection (zero amplitude in this example)
-    stim        = h.IClamp(0.5, sec=cell.soma)
-    stim.amp    = amp  
-    stim.delay  = 100
-    stim.dur    = stimDur                
     
     
     # record vectors
@@ -245,11 +260,12 @@ def main(par="./params-msn.json", \
     da_tstart = 1000    # stimulation time  [ms]
     da_tau    = 500     # time constant     [ms]
     
+    
     tstop = simDur      #                   [ms]
     # dt = default value; 0.025 ms (25 us)
     
     
-    # channels to modulate channels
+    # all channels (with potential) to modulate 
     mod_list    = ['naf', 'kas', 'kaf', 'kir', 'cal12', 'cal13', 'can' ] 
       
     
@@ -271,8 +287,9 @@ def main(par="./params-msn.json", \
     
     # normalize factors to target values seen in simulation by formula:
     #
-    #   modulation  = 1   +      f * (substrate     - initial_substrate)
     #   f           = (factor - 1) / (max_substrate - initial_substrate)
+    #
+    #   modulation  = 1   +      f * (substrate     - initial_substrate)
     #
     # so that the base value correspond to no modulation and and the maximal substrate (target)
     # value corresponds to the maximal value (given by the factor).
@@ -313,82 +330,81 @@ def main(par="./params-msn.json", \
                     
                     
                     
+                    
     # synaptic modulation ================================================================
-    if sim == 'synMod':
+    
+    # draw random modulation factors for synapses from
+    #   intervals given by range_list[[min,max]], where 1 is no modulation.  
+    #   these ranges can be further restricted using the plot functions in 
+    #       "plot_functions.py"
+    glut_f, glut_f_norm     = set_rand_synapse(['amp', 'nmd'], base_mod, max_mod,   \
+                                                range_list=[[0.9,1.6], [0.9,1.6]]   )
+                                                
+    gaba_f, gaba_f_norm     = set_rand_synapse(['gab'],        base_mod, max_mod,   \
+                                                range_list=[[0.6,1.4]]              )
+    
+    syn_fact = glut_f + gaba_f
+    
         
-        # draw random modulation factors for synapses from
-        # intervals given by range_list[[min,max]], where 1 is no modulation.  
-        glut_f, glut_f_norm     = set_rand_synapse(['amp', 'nmd'], base_mod, max_mod,   \
-                                                    range_list=[[0.9,1.6], [0.9,1.6]]   )
-                                                    
-        gaba_f, gaba_f_norm     = set_rand_synapse(['gab'],        base_mod, max_mod,   \
-                                                    range_list=[[0.6,1.4]]              )
+    I_d = {}
+    ns  = {}
+    nc  = {}
+    Syn = {}
+    
+    for sec in h.allsec():
         
-        syn_fact = glut_f + gaba_f
+        # create one glutamatergic and one gabaergic synapse per section
+        if sec.name().find('dend') >= 0:
+            
+            
+            # create a glut synapse
+            make_random_synapse(ns, nc, Syn, sec, 0.5, 0,       \
+                                    NS_interval=1000.0/28.0,    \
+                                    NC_conductance=0.50e-3      )
+                                    
+            # create a gaba synapse
+            make_random_synapse(ns, nc, Syn, sec, 0.0, 0,       \
+                                    Type='tmgabaa',             \
+                                    NS_interval=1000.0/7.0,     \
+                                    NC_conductance=1.50e-3      )
+            
+            
+            # set pointer(s)
+            h.setpointer(pointer, 'pka', Syn[sec])
+            h.setpointer(pointer, 'pka', Syn[sec.name()+'_gaba'])
+            
+            
+            # configure
+            Syn[sec].base       = base_mod
+            Syn[sec].f_ampa     = glut_f_norm[0]
+            Syn[sec].f_nmda     = glut_f_norm[1]
+            
+            Syn[sec.name()+'_gaba'].base    = base_mod
+            Syn[sec.name()+'_gaba'].f_gaba  = gaba_f_norm[0]
         
-            
-        I_d = {}
-        ns  = {}
-        nc  = {}
-        Syn = {}
         
-        for sec in h.allsec():
+        elif sec.name().find('axon') >= 0: 
             
-            # create one glutamatergic and one gabaergic synapse per section
-            if sec.name().find('dend') >= 0:
-                
-                
-                # create a glut synapse
-                make_random_synapse(ns, nc, Syn, sec, 0.5,          \
-                                        NS_interval=1000.0/17.0,    \
-                                        NC_conductance=0.15e-3,     \
-                                        S_tau_dep=100               )
-                                        
-                                        
-                # create a gaba synapse
-                make_random_synapse(ns, nc, Syn, sec, 0.0,          \
-                                        Type='tmgabaa',             \
-                                        NS_interval=1000.0/4.0,     \
-                                        NC_conductance=0.45e-3      )
-                
-                
-                # set pointer(s)
-                h.setpointer(pointer, 'pka', Syn[sec])
-                h.setpointer(pointer, 'pka', Syn[sec.name()+'_gaba'])
-                
-                
-                # configure
-                Syn[sec].base       = base_mod
-                Syn[sec].f_ampa     = glut_f_norm[0]
-                Syn[sec].f_nmda     = glut_f_norm[1]
-                
-                Syn[sec.name()+'_gaba'].base    = base_mod
-                Syn[sec.name()+'_gaba'].f_gaba  = gaba_f_norm[0]
+            # don't modulate segments in the axon
+            continue 
+              
+        
+        # set modulation of channels
+        for seg in sec:
             
-            
-            elif sec.name().find('axon') >= 0: 
+            for mech in seg:
                 
-                # don't modulate segments in the axon
-                continue 
-                  
-            
-            # set modulation of channels
-            for seg in sec:
-                
-                for mech in seg:
+                # turn of or set modulation
+                if mech.name() in not2mod:
                     
+                    mech.factor = 0.0
+                    print(mech.name(), 'and channel:', not2mod, mech.factor, sec.name())
                     
-                    # turn of or set modulation
-                    if mech.name() in not2mod:
-                        
-                        mech.factor = 0.0
-                        print(mech.name(), 'and channel:', not2mod, mech.factor, sec.name())
-                        
-                    elif mech.name() in mod_list:
-                    
-                        mech.base       = base_mod
-                        index           = mod_list.index( mech.name() )
-                        mech.factor     = factors[index]
+                elif mech.name() in mod_list:
+                
+                    mech.base       = base_mod
+                    index           = mod_list.index( mech.name() )
+                    mech.factor     = factors[index]
                         
                     
                     
@@ -413,37 +429,44 @@ def main(par="./params-msn.json", \
         
     
     
+    
+    
     # save output ------------------------------------------------------------------------
     
     ID          = ''
     all_factors = mod_fact + syn_fact
     
+    # create "unique" ID
     for i,mech in enumerate(mod_list+['amp', 'nmd', 'gab']):
         ID = ID + mech + str( int(all_factors[i]*100) )
     
     if dynMod == 1:
+    
         # DA transient
-        save_vector(tm, vm, ''.join(['./Results/Dynamic/spiking_', str(run), '_', ID, '.out']) )
+        
+        if target == 'Target1p':
+            save_vector(tm, vm, ''.join(['./Results/Dynamic/spiking_', str(run), '_', ID, '.out']) )
+            
+            if run == 0:
+                # save substrate concentrations
+                names = ['Target1p', 'cAMP', 'Gbgolf', 'D1RDAGolf']
+        
+                for i,substrate in enumerate([pka, camp, gbg, gprot]):
+                    save_vector(tm, substrate, './Results/Dynamic/substrate_'+names[i]+'.out' )
+        
+        if target not in RES:
+            RES[target] = {}
+        
+        RES[target][run]    = fun.getSpikedata_x_y(tm,vm) 
         
     else: 
-        # no transient
+        
+        # no DA transient
+        
         save_vector(tm, vm, ''.join(['./Results/Dynamic/spiking_', str(run), '_control.out']) )
         
     
-    if run == 0:
-        # save substrate concentrations
-        names = ['Target1p', 'cAMP', 'Gbgolf', 'D1RDAGolf']
-        
-        for i,substrate in enumerate([pka, camp, gbg, gprot]):
-            save_vector(tm, substrate, './Results/Dynamic/substrate_'+names[i]+'.out' )
-        
     
-    
-    
-    # save current from the synapses
-    #for key in I_d:
-        #save_vector(tm, I_d[key], ''.join(['./I_', key, '_', str(run), '.out']) )
-            
     # when run large scale (on supercomputer) all iterarations from one core 
     # were stored in one dict to decrease the number of files. Only factors and spikes
     # were recorded        
@@ -458,60 +481,48 @@ def main(par="./params-msn.json", \
 # Function needed for HBP compability  ===================================================
 if __name__ == "__main__":
     
+    # this will take a few minutes to run. Sim time can be reduced by reducing the n_runs
+    # below
     
-    print('starting sim')
+    simulate    = True
     
+    if simulate:
     
-    n_runs_control      = 5
-    n_runs_modulated    = 5
-    
-    # other targets: ['Target1p', 'cAMP', 'Gbgolf',  'D1RDAGolf']
-    
-    # modulated
-    for n in range(n_runs_modulated):
-        main( par="./params-rob.json",          \
-                    amp=0.0,                    \
-                    run=n,                      \
-                    simDur=2000,                \
-                    stimDur=3000,               \
-                    sim='synMod',               \
-                    dynMod=1,                   \
-                    target='Target1p',          \
-                    not2mod=[]                  )
-    
-    # control (dynMod = 0)
-    for n in range(n_runs_modulated,n_runs_modulated+n_runs_modulated):
-        main( par="./params-rob.json",          \
-                    amp=0.0,                    \
-                    run=n,                      \
-                    simDur=2000,                \
-                    stimDur=3000,               \
-                    sim='synMod',               \
-                    dynMod=0,                   \
-                    target='Target1p',          \
-                    not2mod=[]                  )
+        print('starting sim')
         
-        '''
-        # write result to file every 20 iterations (if run large scale in parallel)
-        if n % 20 == 0:  
+        
+        n_runs_control      = 5
+        n_runs_modulated    = 5
+        targets             = ['Target1p', 'cAMP', 'Gbgolf',  'D1RDAGolf']
+        
+        # modulated
+        for target in targets:
+            for n in range(n_runs_modulated):
+                main( par="./params_dMSN.json",          \
+                            run=n,                      \
+                            simDur=2000,                \
+                            dynMod=1,                   \
+                            target=target,              \
+                            not2mod=[]                  )
+        
+        
+        # control (dynMod = 0)
+        for n in range(n_runs_modulated,n_runs_modulated+n_runs_control):
+            main( par="./params_dMSN.json",          \
+                        run=n,                      \
+                        simDur=2000,                \
+                        dynMod=0,                   \
+                        target='control',           \
+                        not2mod=[]                  )
+       
+        fun.save_obj( RES, './Results/Dynamic/SPIKES' )
+               
+    else:
             
-            print('in save loop') 
-            
-            mod_list    = ['naf', 'kas', 'kaf', 'kir', 'cal12', 'cal13', 'can']
-            syn_mod     = ['amp', 'nmd', 'gab'] 
-            mod_fact    = RES[0]['factors']
-            ID          = ''
-            
-            for i,mech in enumerate(mod_list+syn_mod):
-                ID = ID + mech + str( int(mod_fact[i]*100) )
-            
-            fun.save_obj(RES, ''.join(['ModAll_', target, '-', ID]) )
-        '''
-            
-            
+        RES = fun.load_obj( './Results/Dynamic/SPIKES.pkl' )          
             
     print('plotting')            
-    fun.plot_fig6B('./Results/Dynamic/')            
+    fun.plot_fig6B('./Results/Dynamic/', RES)            
     
                         
                                                     

@@ -1,4 +1,19 @@
 # Original file WT-P270-20-13ak.swc modified.
+# Back to sperical soma since the extra points were not recongnized as part of the first
+# somatic segment (creating extra surface area).
+# diameter of soma updated to 12.2 since that is reported as the mean diameter of
+# MSNs of the matrix compartment (Reinius et al., 2015. 
+# Conditional targeting of medium spiny neurons in the striatal matrix).
+# A Scale factor in the MSN_builder is then mapping conductances to the old surface area; 
+#      SF = Aold / Anew.
+# axon updated with one additional point to retain len of 60 um (first point is 
+# interpretted as boundary of soma and is not included in the len calculations.
+#
+# Original file WT-P270-20-13ak.swc modified.
+# Three-point soma used. points added to end of file.
+# also axon initial segment added as two points connected to the last point of the soma.
+#
+# Original file WT-P270-20-13ak.swc modified.
 # Three-point soma replaced with single point, nodes renumbered.
 #
 # Original file WT-P270-20-5ak.swc modified.
@@ -28,7 +43,7 @@
 # Neurolucida to SWC conversion from L-Measure. Sridevi Polavaram: spolavar@gmu.edu
 # Original fileName:C:\Users\praveen\Desktop\DataProcessing\CurrentArchives\Processing\Kellendonk\ASC\WT-P270-20.asc
 # The original file has 4 soma contours that are averaged into 4 soma points
-1 1 0 0 0 5.6 -1
+1 1 0 0 0 7.06 -1
 2 3 12.6711 5.28947 12.9145 1.17833 1
 3 3 15.5789 6.32895 12.9145 1.17679 2
 4 3 15.7895 6.32895 12.9145 1.17668 3
@@ -2157,7 +2172,6 @@
 2127 3 -30.7632 131.039 42.0789 0.4364 2126
 2128 3 -30.5658 132.697 44.1316 0.435077 2127
 2129 3 -30.5658 132.697 44.2855 0.435 2128
-3001 1 0 0   5.6 5.6  1
-3002 1 0 0  12.2 5.6  3001
-4001 2 0 30 12.2 0.5  3002
-4002 2 0 60 12.2 0.5  4001
+3000 2   7   0  0   0.5     1
+3001 2   7  30  0   0.5  3000
+3002 2   7  60  0   0.5  3001

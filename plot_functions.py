@@ -1,4 +1,4 @@
-#! /usr/bin/python
+    #! /usr/bin/python
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -1157,11 +1157,11 @@ def plot_static_modulation_pdc(pickled_data, modulation=['*', '*', '*', '*', '*'
             a[i].xaxis.set_ticks_position('bottom')
             a[i].spines['bottom'].set_linewidth(2)
         
-            
+    '''        
     f5.savefig(''.join(['../../../Dropbox/manuscript/Frontiers/Figures/extendedDATA_uniform_static_distributions_pdc_', marker, '.png']), 
                bbox_inches='tight', 
                transparent=True,
-               pad_inches=0 )
+               pad_inches=0 )'''
                
     # procetage in each category
     
@@ -1176,10 +1176,11 @@ def plot_static_modulation_pdc(pickled_data, modulation=['*', '*', '*', '*', '*'
     
     plt.axis('equal')
     
+    '''
     plt.savefig(''.join(['../../../Dropbox/manuscript/Frontiers/Figures/extendedDATA_uniform_static_pie_pdc_', marker, '.png']), 
                bbox_inches='tight', 
                transparent=True,
-               pad_inches=0 )
+               pad_inches=0 )'''
     
                
     plt.show()
@@ -1509,10 +1510,11 @@ def plot_modulation_dynamical_pdc(modulation=[[70,10], [75,10], [100,3], [102,22
     
     #plt.setp(axins, xticks=[], yticks=[])
     
+    '''
     f3.savefig(''.join(['../../../Dropbox/manuscript/Frontiers/Figures/static_', marker, '_chanDist_pdc.png']), 
                bbox_inches='tight', 
                transparent=True,
-               pad_inches=0 )
+               pad_inches=0 )'''
     
     print 'fig 3 done'
     
@@ -1541,11 +1543,11 @@ def plot_modulation_dynamical_pdc(modulation=[[70,10], [75,10], [100,3], [102,22
         a5[i].spines['bottom'].set_visible(True)        
         a5[i].xaxis.set_ticks_position('bottom')
         a5[i].spines['bottom'].set_linewidth(2)
-            
+    '''       
     f5.savefig(''.join(['../../../Dropbox/manuscript/Frontiers/Figures/static_', marker, '_distributions_pdc.png']), 
                bbox_inches='tight', 
                transparent=True,
-               pad_inches=0 )
+               pad_inches=0 )'''
     
     print 'fig 4 done'  
     
@@ -1595,10 +1597,11 @@ def plot_modulation_dynamical_pdc(modulation=[[70,10], [75,10], [100,3], [102,22
         ax.set_yticks([0,200])
         ax.set_yticklabels([0,200], fontsize=18)
         
+        '''
         fig.savefig(''.join(['../../../Dropbox/manuscript/Frontiers/Figures/static_', marker, '_correlation_pdc.png']), 
                    bbox_inches='tight', 
                    transparent=True,
-                   pad_inches=0 )
+                   pad_inches=0 )'''
                    
     except:
         print 'could not save correlation figure--line ~1475'
@@ -1710,7 +1713,7 @@ def plot_modulation_dynamical_pdc(modulation=[[70,10], [75,10], [100,3], [102,22
         
         ax.text(100, 150, str.format('{0:.2f}', R), fontsize=18)
                     
-                    
+        '''            
         f6.savefig(''.join(['../../../Dropbox/manuscript/Frontiers/Figures/static_', marker, '_distAndScatter_pdc.png']), 
                    bbox_inches='tight', 
                    transparent=True,
@@ -1720,7 +1723,7 @@ def plot_modulation_dynamical_pdc(modulation=[[70,10], [75,10], [100,3], [102,22
         f7.savefig(''.join(['../../../Dropbox/manuscript/Frontiers/Figures/static_', marker, '_less_corr_pdc.png']), 
                    bbox_inches='tight', 
                    transparent=True,
-                   pad_inches=0 )
+                   pad_inches=0 )'''
     
         print 'fig 4 done'  
     
@@ -1820,13 +1823,14 @@ def plot_modulation_dynamical_pdc(modulation=[[70,10], [75,10], [100,3], [102,22
     
     plt.axis('equal')
     
+    '''
     plt.savefig(''.join(['../../../Dropbox/manuscript/Frontiers/Figures/static_', marker, '_pie_pdc.png']), 
                bbox_inches='tight', 
                transparent=True,
-               pad_inches=0 )
+               pad_inches=0 )'''
     
-    plt.close('all')
-    #plt.show()
+    #plt.close('all')
+    plt.show()
     
 
 
@@ -2935,7 +2939,7 @@ def plot_substrates():
     plt.show()
     
     
-def plot_fig6B(directory):
+def plot_fig6B(directory, SPIKES):
     ''' 
     reporduces fig 6B, except for that the random traces are different
     copied from "plot_synMod_dyn_pdc"
@@ -2948,7 +2952,7 @@ def plot_fig6B(directory):
     # plot noise and example trace
     
     num_cores   = multiprocessing.cpu_count()
-    files       = glob.glob(''.join([directory, 'spiking_*[0-9].out']))
+    files       = glob.glob(''.join([directory, 'spiking_[0-9]_naf*.out']))
     M           = Parallel(n_jobs=num_cores)(delayed(load_file)( f ) for f in files)
     
     for x,y,dy,f in M:
@@ -2956,7 +2960,7 @@ def plot_fig6B(directory):
         x = np.subtract(x,1000)
         a2[0].plot(x,y, label=f, lw=2, color='k')
         
-    files       = glob.glob(''.join([directory, 'spiking_*control.out']))
+    files       = glob.glob(''.join([directory, 'spiking_[0-9]_control.out']))
     M           = Parallel(n_jobs=num_cores)(delayed(load_file)( f ) for f in files)
     
     for x,y,dy,f in M:
@@ -2977,15 +2981,49 @@ def plot_fig6B(directory):
         x       = np.subtract(x, 1000)
         
         a2[0].plot(x,y, label=f, lw=3, color=colors[c]) 
+    
+    
+    
+    names       = ['PKA',       \
+                   'cAMP',      \
+                   r'G$_{\beta\gamma}$',    \
+                   'D1R-G']  
+    
+    t_first_spike = [[],[],[],[]]
+    for t,target in enumerate(files):
         
+        for run in SPIKES[target]:
+            
+            if len( SPIKES[target][run] ) > 0:
+                t_first_spike[t].append( SPIKES[target][run][0]-1000 )
+        
+    
+    print t_first_spike
+        
+    medianprops     = dict(linestyle='-', linewidth=2, color='k')
+    boxprops        = dict(linewidth=2, color='grey')
+    # over substrates (PKA, cAMP, Gbg, DIR)--reversed                
+    bp2 = a2[1].boxplot([t_first_spike[i] for i in [3,2,1,0]],   \
+                    labels=[ names[i] for i in [3,2,1,0]],   \
+                    vert=False,                 \
+                    medianprops=medianprops,    \
+                    boxprops=boxprops)    
+    format_boxplot(bp2, median=True, lw=2, colors=colors[::-1])
+    
+    for median in range(len(bp2['medians'])):
+        print
+        print bp2['medians'][median].get_xdata()    
    
     for ax in a2[0:1]:
         ax.set_xlim([-250, 1000])
     a2[1].set_xticks( [-250,0,500,1000] )
     a2[1].spines['left'].set_visible(False)
     a2[1].spines['top'].set_visible(False)
-    a2[1].set_yticks([])
+    #a2[1].set_yticks([])
+    a2[1].set_ylabel('Time to spike', fontsize=20)
+    a2[0].set_ylabel('Example       Substrates')
     a2[1].xaxis.set_ticks_position('bottom')
+    
     
     # size of frame
     for axis in ['right', 'bottom']:
@@ -3002,7 +3040,7 @@ def plot_fig6B(directory):
     
     
     
-def plot_fig4_raster(spike_dict):
+def plot_fig4C(spike_dict):
     '''
     "reproduce" the raster and pie chart from fig 4A (with smaller sample set).
     
@@ -3074,7 +3112,7 @@ def plot_fig4_raster(spike_dict):
     plt.figure(figsize=(4,3))
     quant = {320:0, 330:0, 340:0}
     
-    # quantify by finding the lowes current amplitude that make the cell spikes
+    # quantify by finding the lowest current amplitude that make the cell spikes
     for n in range(1, len(spike_dict)):
         
         for i,I in enumerate(currents):
@@ -3083,7 +3121,6 @@ def plot_fig4_raster(spike_dict):
                 
                 quant[I] += 1
                 break
-                
                 
     
     N       = [ quant[320],  quant[330],  quant[340] ]
@@ -3095,6 +3132,53 @@ def plot_fig4_raster(spike_dict):
     plt.rcParams['font.size'] = 50
     
     plt.axis('equal')
+    
+    
+    # channel distributions -----------------------------------------------------
+    channels    = ['naf', 'kas', 'kaf', 'kir', 'cal12', 'cal13', 'can' ]
+    f5, a5      = plt.subplots(len(channels), 1, figsize=(6,6), sharex=True)
+    bins        = np.linspace(0, 200, 50)
+    
+    TOT         = {}
+    quant       = { 320: {}, 330:{}, 340:{} }
+    
+    for n in range(1, len(spike_dict)):
+        
+        for c, I in enumerate(currents):
+            
+            if 'kaf' not in quant[I]:
+                for chan in channels:
+                    quant[I][chan] = []
+            
+            if len(spike_dict[n][I]) > 0 or c == 2:
+                
+                for i, chan in enumerate(channels):  
+                         
+                    quant[I][chan].append( spike_dict[n]['factors'][i]*100 )
+                    
+                break
+                
+    
+    for i, chan in enumerate(channels):
+    
+        for c, cathegory in enumerate([320, 330, 340]):
+            
+            weights = np.ones_like(quant[cathegory][chan])/float(len(quant[cathegory][chan]))*100.0
+            
+            a5[i].hist( quant[cathegory][chan], bins=bins, weights=weights, color=color[c], alpha=0.2, histtype='stepfilled')
+            a5[i].hist( quant[cathegory][chan], bins=bins, weights=weights, color=color[c], histtype='step', lw=3)
+        
+        for a in [a5]:   
+            a[i].set_yticks([])
+            a[i].set_xticks([0,100,200])
+            a[i].set_xticklabels([0,100,200], fontsize=24)
+            
+            a[i].spines['left'].set_visible(False)
+            a[i].spines['top'].set_visible(False)
+            a[i].spines['right'].set_visible(False)
+            a[i].spines['bottom'].set_visible(True)        
+            a[i].xaxis.set_ticks_position('bottom')
+            a[i].spines['bottom'].set_linewidth(2)
     
     
     

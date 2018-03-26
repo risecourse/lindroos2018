@@ -39,22 +39,27 @@ def save_vector(t, v, outfile):
                   
 
 
-def main(par="./params-rob.json", \
+
+
+def main(   par="./params_dMSN.json",        \
                             sim='vm',       \
                             amp=0.265,      \
                             run=None,       \
-                            simDur=7000,    \
+                            simDur=1000,    \
                             stimDur=900     ): 
     
     
-    
     # initiate cell
-    cell = build.MSN(params=par)
+    cell    =   build.MSN(  params=par,                             \
+                            morphology='latest_WT-P270-20-14ak.swc' )
     
     
-    # set cascade--not connected to channels in this script, 
+    # set cascade--not activated in this script, 
     # but used for setting pointers needed in the channel mechnisms
     casc    =   h.D1_reduced_cascade2_0(0.5, sec=cell.soma) 
+    
+    
+    # set pointer target in cascade
     pointer =   casc._ref_Target1p    
        
     
@@ -104,6 +109,7 @@ def main(par="./params-rob.json", \
                     
                     # N-type Ca (can) is only distributed to the soma section
                     h.setpointer(pointer, 'pka', seg.can )
+                    
             
     
     # configure simulation to record from both calcium pools.
@@ -201,7 +207,7 @@ if __name__ == "__main__":
     
     # dendritic validation: change in [Ca] following a bAP (validated against Day et al., 2008)
     current = 2000
-    main( par="./params-rob.json",          \
+    main( par="./params_dMSN.json",          \
                 amp=current*1e-3,           \
                 simDur=200,                 \
                 stimDur=2,                  \
@@ -213,7 +219,7 @@ if __name__ == "__main__":
     # somatic excitability (validated against FI curves in Planert et al., 2013)  
     currents    = np.arange(-100,445,40)
     num_cores   = multiprocessing.cpu_count()
-    Parallel(n_jobs=num_cores)(delayed(main)(   par="./params-rob.json",    \
+    Parallel(n_jobs=num_cores)(delayed(main)(   par="./params_dMSN.json",   \
                                                 amp=current*1e-3,           \
                                                 run=1,                      \
                                                 simDur=1000,                \
@@ -221,7 +227,7 @@ if __name__ == "__main__":
                         ) for current in currents)
                         
     currents    = np.arange(320,445,40)
-    Parallel(n_jobs=num_cores)(delayed(main)(   par="./params-rob.json",    \
+    Parallel(n_jobs=num_cores)(delayed(main)(   par="./params_dMSN.json",   \
                                                 amp=current*1e-3,           \
                                                 run=1,                      \
                                                 simDur=1000,                \

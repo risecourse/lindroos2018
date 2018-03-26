@@ -1,35 +1,50 @@
 Model used in 
 
-Lindroos et al. (2018). doi 10.3389/fncir.2018.00003
-
-Errata:
-There is a discrepancy between the model description of the soma in the paper (Morphology;
-page 6) and how the morphology file is interpreted by NEURON.
-In the paper it is stated that two additional somatic points are added to the morphology,
-giving a length and diameter of 12.2 and 11.2 respectively. The extra points are however
-not interpreted as part of the same section as the root node, but as an additional somatic
-protrusion. This have the consequence that the somatic area, and thereby currents, are 
-larger than expected. The total somatic area of the model, instead corresponds to the size 
-of a sphere with a radius of about 7 um. 
-
-This does not affect the results of the paper since the same result can be obtained in a 
-model with sperical soma of arbitrary size. This is done by rescaling the maximal value of 
-the somatic conductances by the following scale factor:
-    
-    SF = A_org/A_new
-    
-Where A_org is the original area (626.3078906869523 um2, in this case), and
-      A_new is the somatic area of the model you wish to mapp to.
-      
-Since the dendritic conductances are set based on the distance to the edge of the soma, 
-the distance of each segment must also be rescaled based on the difference in somatic 
-(root) radius:
-
-    dist(seg_x) = dist + (r_new - r_org)
-    
- 
+Lindroos et al. (2018). doi 10.3389/fncir.2018.00003etan
 
 ------------------------------------------------------------------------------------------
+ERRATA:
+
+Two corrections were made in the model code to match the description in the article. These 
+modifications had minor effects on the results and did not change the conclusions in the 
+published paper. The corrected model code closely reproduces the data and figures of the 
+article.
+
+
+1.) The somatic area was larger in the original model than that of a cylinder with length 
+    12.2 and diameter 11.2 um (as stated in the paper), but still within reported range 
+    (Reinius et al., 2015; Steiner and Tseng, 2017).NEURON interpreted the three point 
+    soma as two sections, rather than one. CORRECTIONS MADE: The three point morphology 
+    was replaced with a single point soma with radius of 7.06  um, giving the same area as 
+    in the original model used in the publication. One additional axonal point was added 
+    to the morphology to retain the length of the axon initial segment.
+
+    Additionally, the change in somatic radius also has the consequence that the distance 
+    dependence of the dendritic channels are off by 1.46 micrometer compared to the paper 
+    version. CORRECTION: The distance dependence of the channels have been recalculated  
+    using the following equation:
+    
+        dist(seg_x) = dist(seg_x) - r_new + r_org = dist(seg_x) - 7.06 + 5.6
+
+2.) A mistake was discovered in the function setting the background synaptic currents that 
+    redirected the stimulus intended for the gaba synapse to the glutamate synapse. 
+    CORRECTIONS: The pure excitatory drive was replaced with excitation and inhibition in 
+    accordance with the paper. Amplitude and activation frequency was rescaled to retain a 
+    similar in vivo like state. The rescaling was further done in a way that kept the 
+    balance between glutamatergic and gabaergic input stated in the paper.
+    
+    In general a modification of the GABA/Glut ratio will affect the overall excitability 
+    levels, but even with significant changes in this background noise Glut/GABA ratio, 
+    the qualitative conclusions of the paper hold.
+    
+    
+Reinius et al., (2015). 
+Conditional targeting of medium spiny neurons in the striatal matrix.
+Steiner and Tseng., (2017).
+Handbook of basal ganglia structure and function. Second edition.
+
+------------------------------------------------------------------------------------------
+
 
 -Dependencies
 -How to run
@@ -52,6 +67,7 @@ json
 +
 joblib
 multiprocessing
+os.path
 
 However, with minor adjustments the model can be run without most of these additional 
 libraries.
