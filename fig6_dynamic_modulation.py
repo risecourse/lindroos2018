@@ -12,7 +12,7 @@ Implemented in colaboration with Kai Du <kai.du at ki.se>
 '''
 
 
-from __future__ import print_function, division
+
 from neuron import h
 #import mpi4py as MPI
 import numpy                as np
