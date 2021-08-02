@@ -56,6 +56,7 @@ def calculate_distribution(d3, dist, a4, a5,  a6,  a7, g8):
 
 class MSN:
     def __init__(self,  params=None,                                \
+                         par=None,   \
                         morphology='latest_WT-P270-20-14ak.swc'     ):
         Import = h.Import3d_SWC_read()
         Import.input(morphology)
@@ -121,9 +122,10 @@ class MSN:
             sec.ena = 50
             sec.ek = -85 # -90
 
-        with open(params) as file:
-            par = json.load(file)
-
+        #with open(params) as file:
+        #    par = json.load(file)
+        if type(par) is not dict:
+            print(par)
         self.distribute_channels("soma", "g_pas", 0, 1, 0, 0, 0, float(par['g_pas_all']['Value']))
         self.distribute_channels("axon", "g_pas", 0, 1, 0, 0, 0, float(par['g_pas_all']['Value']))
         self.distribute_channels("dend", "g_pas", 0, 1, 0, 0, 0, float(par['g_pas_all']['Value']))

@@ -1,0 +1,5 @@
+*.c
+*.o
+*.out
+nrnmech.dll
+*.pyc

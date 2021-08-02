@@ -21,14 +21,21 @@ import numpy                as np
 import matplotlib.pyplot    as plt
 import plot_functions       as fun
 import MSN_builder          as build
+import json
 
+import os
 
+if not os.path.exists('Results/FI'):
+    os.makedirs('Results/FI')
 
+if not os.path.exists('Results/Ca'):
+    os.makedirs('Results/FI')
+    
 h.load_file('stdlib.hoc')
 h.load_file('import3d.hoc')
 
-
- 
+usepar=0 # 0: run in serial (slow, but no pickle errors)
+         # 1: run in parallel (fast but requires pickling the tasks)
     
 def save_vector(t, v, outfile):
     
@@ -46,11 +53,13 @@ def main(   par="./params_dMSN.json",        \
                             amp=0.265,      \
                             run=None,       \
                             simDur=1000,    \
+                                parfile=None, \
                             stimDur=900     ): 
     
     
     # initiate cell
     cell    =   build.MSN(  params=par,                             \
+                            par = parfile, \
                             morphology='latest_WT-P270-20-14ak.swc' )
     
     
@@ -203,11 +212,14 @@ if __name__ == "__main__":
     
     
     print('starting sim')
-    
+    par="./params_dMSN.json"
+    with open(par) as file:
+        parfile = json.load(file)
     
     # dendritic validation: change in [Ca] following a bAP (validated against Day et al., 2008)
     current = 2000
     main( par="./params_dMSN.json",          \
+         parfile = parfile, \
                 amp=current*1e-3,           \
                 simDur=200,                 \
                 stimDur=2,                  \
@@ -215,24 +227,48 @@ if __name__ == "__main__":
                                                 
     
     print('starting somatic excitability simulation')                                               
-    
+    if usepar==1:
+        # somatic excitability (validated against FI curves in Planert et al., 2013)  
+        currents    = np.arange(-100,445,40)
+        num_cores   = multiprocessing.cpu_count()
+        Parallel(n_jobs=num_cores)(delayed(main)(   par="./params_dMSN.json",   \
+                                                    parfile = parfile, \
+                                                    amp=current*1e-3,           \
+                                                    run=1,                      \
+                                                    simDur=1000,                \
+                                                    stimDur=900                 \
+                            ) for current in currents)
+                            
+        currents    = np.arange(320,445,40)
+        Parallel(n_jobs=num_cores)(delayed(main)(   par="./params_dMSN.json",   \
+                                                    parfile = parfile, \
+                                                    amp=current*1e-3,           \
+                                                    run=1,                      \
+                                                    simDur=1000,                \
+                                                    stimDur=900                 \
+                            ) for current in currents)
+    else:
     # somatic excitability (validated against FI curves in Planert et al., 2013)  
-    currents    = np.arange(-100,445,40)
-    num_cores   = multiprocessing.cpu_count()
-    Parallel(n_jobs=num_cores)(delayed(main)(   par="./params_dMSN.json",   \
-                                                amp=current*1e-3,           \
-                                                run=1,                      \
-                                                simDur=1000,                \
-                                                stimDur=900                 \
-                        ) for current in currents)
-                        
-    currents    = np.arange(320,445,40)
-    Parallel(n_jobs=num_cores)(delayed(main)(   par="./params_dMSN.json",   \
-                                                amp=current*1e-3,           \
-                                                run=1,                      \
-                                                simDur=1000,                \
-                                                stimDur=900                 \
-                        ) for current in currents)
+        currents    = np.arange(-100,445,40)
+        for current in currents:
+            main(   par="./params_dMSN.json",   \
+                  parfile = parfile, \
+                   amp=current*1e-3,           \
+                    run=1,                      \
+                    simDur=1000,                \
+                    stimDur=900 
+                    )
+                            
+        currents    = np.arange(320,445,40)
+        for current in currents:
+            main(   par="./params_dMSN.json",   \
+                    parfile = parfile, \
+                    amp=current*1e-3,           \
+                    run=1,                      \
+                    simDur=1000,                \
+                    stimDur=900                 \
+                    )
+
                         
     
     print('all simulations done! Now plotting')
