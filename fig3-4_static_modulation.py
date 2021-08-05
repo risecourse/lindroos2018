@@ -53,7 +53,22 @@ def calc_rand_Modulation(mod_list, range_list=False):
     range_list   = list of [min, max] values to be used in modulation. 
                     Must have same length as mod_list.
     '''
+    # TODO: Figure out how treatments would affect the dopamine concentration
+    # Try doubling the modulation factor MF (or some other increase) to represent
+    # the effect of the therapeutics.
+    #
+    # 
     
+    
+    MF = 2.0 # Originally 2.0, we could alter this to represent increased
+             # or decreased dopamine. We could also alter the range of
+             # modulation values that can be present in the model, perhaps
+             # the neurons are more consistently modulated in the presence
+             # of some of these therapeutics. Ex:
+                 # MAO-B Inhibitor:  A =    B =      MF =
+                 # Dopamine Agonist: A =    B =      MF =
+                 # Levodopa:         A =    B =      MF =
+             
     mod_factors = []
     
     A=0
@@ -61,7 +76,7 @@ def calc_rand_Modulation(mod_list, range_list=False):
     
     for i,channel in enumerate(mod_list):
         
-        factor = 2.0 * np.random.uniform()
+        factor = MF * np.random.uniform()
     
         if range_list:
             
